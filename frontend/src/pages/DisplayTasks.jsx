@@ -13,6 +13,7 @@ import { Column, ScreenMessage } from "@components";
 import "@styles/index.css";
 
 export default function ShowTasks() {
+  const [tasks, setTasks] = useState([]);
   const [tasksMap, setTasksMap] = useState({});
   
   const [status, setStatus] = useState("Server is dead...");
@@ -22,20 +23,58 @@ export default function ShowTasks() {
 
   const navigate = useNavigate();
 
+  const updateTaskMap = (new_tasks) => {
+    setTasks(new_tasks);
+    setTasksMap({
+      0: new_tasks.filter(task => !task.is_completed && !task.is_deleted),
+      1: new_tasks.filter(task => task.is_completed && !task.is_deleted),
+      2: new_tasks.filter(task => task.is_deleted),
+    });
+  }
+
   const fetchTasks = useCallback(() => {
     fetch(`http://localhost:8000/tasks/`)
-      .then((response) => response.json())
-      .then((data) => {
-        setTasksMap({
-          0: data.filter(task => !task.is_completed && !task.is_deleted),
-          1: data.filter(task => task.is_completed && !task.is_deleted),
-          2: data.filter(task => task.is_deleted),
-        });
-
-        setStatus(data.length > 0 ? "ok" : "No tasks yet...");
+      .then((response) => {
+        setStatus(response.ok ? "ok" : "No tasks yet...");
+        return response.json();
       })
-      .catch((error) => console.error("Error fetching tasks: ", error))
+      .then((data) => {
+        updateTaskMap(data);
+      });
   }, []);
+
+  const completeTask = (taskId) => {
+    fetch(`http://localhost:8000/tasks/edit/${taskId}/`, {
+      method: "PUT",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({"is_completed": true}),
+    })
+    .then((response) => {
+      if (response.ok) {
+        updateTaskMap(tasks.map((task) =>
+          task.id === taskId ? { ...task, is_completed: true } : task
+        ));
+      }
+    })
+  }
+
+  const deleteTask = (taskId) => {
+    fetch(`http://localhost:8000/tasks/delete/${taskId}/`, {
+      method: "DELETE"
+    })
+    .then((response) => {
+      if (response.ok) {
+        if (tasks.find((task) => task.id === taskId && !task.is_deleted)) {
+          updateTaskMap(tasks.map((task) =>
+            task.id === taskId ? { ...task, is_deleted: true } : task
+          ));
+        }
+        else {
+          updateTaskMap(tasks.filter((task) => task.id !== taskId));
+        }
+      }
+    })
+  };
 
   const changeCurrentTab = (e, newCurrentTab) => {
     setCurrentTab(newCurrentTab);
@@ -56,7 +95,9 @@ export default function ShowTasks() {
     <>
       <Container sx={{ padding: 4 }}>
         {status !== "ok" ? (
-          <ScreenMessage message={status}/>
+          <Column>
+            <ScreenMessage message={status}/>
+          </Column>
         ) : (
           <Column gap={2}>            
             <TabContext value={currentTab}>
@@ -124,85 +165,94 @@ export default function ShowTasks() {
                 <AddTaskIcon/>
               </IconButton>
             </Box>
-            <List>
-              {tasksMap[currentTab].map((task, index) => (
-                <React.Fragment key={task.id}>
-                  <ListItem disablePadding>
-                    <ListItemButton disableRipple
-                      onClick={() => toggleExpand(task.id)}
-                      sx={{
-                        width: "750px",
-                        gap: 1,
-                        borderRadius: 0,
-                        backgroundColor: "#45B78B",
-                        '&:hover': { backgroundColor: "rgba(69, 183, 139, 0.5)" },
-                      }}
-                    >
-                      <IconButton disableRipple 
-                        disabled={task.is_completed || task.is_deleted}
-                        onClick={(e) => {
-                          e.stopPropagation();
-
-                          
-                        }}
+            {tasksMap[currentTab].length === 0 ? (
+              <ScreenMessage message={currentTab === 0 
+                ? "Yay, no tasks to do!" 
+                : currentTab === 1 
+                  ? "Slacking?" 
+                  : "Why would someone delete their tasks?"
+              }/>
+            ) : (
+              <List>
+                {tasksMap[currentTab].map((task, index) => (
+                  <React.Fragment key={task.id}>
+                    <ListItem disablePadding>
+                      <ListItemButton disableRipple
+                        onClick={() => toggleExpand(task.id)}
                         sx={{
-                          color: "#092E20",
-                          '&:hover': { color: "#F1FFF8" }
+                          width: "750px",
+                          gap: 1,
+                          borderRadius: 0,
+                          backgroundColor: "#45B78B",
+                          '&:hover': { backgroundColor: "rgba(69, 183, 139, 0.5)" },
                         }}
                       >
-                        {
-                          !task.is_completed 
-                          ? <RadioButtonUncheckedIcon /> 
-                          : <RadioButtonCheckedIcon />
-                        }
-                      </IconButton>
-                      <ListItemText primary={
-                        <Typography variant="body1">
-                          <strong>{task.title}</strong>
-                        </Typography>
-                      } />
-                      <IconButton disableRipple sx={{color: "#092E20"}}
-                      >
-                        {isExpandedMap[task.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                      </IconButton>
-                      <IconButton disableRipple
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                        sx={{
-                          color: "#092E20",
-                          '&:hover': { color: "#F1FFF8" }
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemButton>
-                  </ListItem>
-                  <Collapse in={isExpandedMap[task.id]} timeout="auto" unmountOnExit>
-                    <ListItem
-                      sx={{
-                        width: "750px",
-                        backgroundColor: "rgba(69, 183, 139, 0.25)",
-                      }}
-                    >
-                      <ListItemText 
-                        primary={
-                          <Typography variant="body2">
-                            <strong>Notes:</strong>
+                        <IconButton disableRipple 
+                          disabled={task.is_completed || task.is_deleted}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            completeTask(task.id);
+                          }}
+                          sx={{
+                            color: "#092E20",
+                            '&:hover': { color: "#F1FFF8" }
+                          }}
+                        >
+                          {
+                            !task.is_completed 
+                            ? <RadioButtonUncheckedIcon /> 
+                            : <RadioButtonCheckedIcon />
+                          }
+                        </IconButton>
+                        <ListItemText primary={
+                          <Typography variant="body1">
+                            <strong>{task.title}</strong>
                           </Typography>
-                        } 
-                        secondary={
-                          <Typography variant="body2">
-                            {task.notes ? task.notes : "None"}
-                          </Typography>
-                        }  
-                      />
+                        } />
+                        <IconButton disableRipple sx={{color: "#092E20"}}
+                        >
+                          {isExpandedMap[task.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                        </IconButton>
+                        <IconButton disableRipple
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteTask(task.id);
+                          }}
+                          sx={{
+                            color: "#092E20",
+                            '&:hover': { color: "#F1FFF8" }
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </ListItemButton>
                     </ListItem>
-                  </Collapse>
-                  {index < tasksMap[currentTab].length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
+                    <Collapse in={isExpandedMap[task.id]} timeout="auto" unmountOnExit>
+                      <ListItem
+                        sx={{
+                          width: "750px",
+                          backgroundColor: "rgba(69, 183, 139, 0.25)",
+                        }}
+                      >
+                        <ListItemText 
+                          primary={
+                            <Typography variant="body2">
+                              <strong>Notes:</strong>
+                            </Typography>
+                          } 
+                          secondary={
+                            <Typography variant="body2">
+                              {task.notes ? task.notes : "None"}
+                            </Typography>
+                          }  
+                        />
+                      </ListItem>
+                    </Collapse>
+                    {index < tasksMap[currentTab].length - 1 && <Divider />}
+                  </React.Fragment>
+                ))}
+              </List>
+            )}
           </Column>
         )}
       </Container>

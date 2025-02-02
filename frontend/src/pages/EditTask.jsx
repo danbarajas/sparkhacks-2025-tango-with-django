@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, IconButton, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -21,7 +20,7 @@ export default function EditTask() {
             >
               <ArrowBackIcon />
             </IconButton>
-            <Typography variant="h3">Edit Task</Typography>
+            <Typography variant="h3">New Task</Typography>
             <IconButton
               size="large"
               sx={{
