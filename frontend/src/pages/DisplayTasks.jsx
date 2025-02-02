@@ -2,53 +2,50 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Collapse, Container, Divider, IconButton, List, ListItem, ListItemButton, ListItemText, Tab, Typography } from "@mui/material";
 import { TabContext, TabList } from "@mui/lab";
+import AddTaskIcon from '@mui/icons-material/AddTask';
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import DeleteIcon from "@mui/icons-material/Delete";
-import AddTaskIcon from '@mui/icons-material/AddTask';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import { Column, DemoAppBar, ScreenMessage } from "@components";
+import { Column, ScreenMessage } from "@components";
 
 import "@styles/index.css";
 
-const statuses = ["TODO", "Completed", "Deleted"];
-
 export default function ShowTasks() {
-  const [tasks, setTasks] = useState([]);
-
+  const [tasksMap, setTasksMap] = useState({});
+  
   const [status, setStatus] = useState("Server is dead...");
-  const [isExpandedMap, setIsExpandedMap] = useState({});
+
   const [currentTab, setCurrentTab] = useState(0);
+  const [isExpandedMap, setIsExpandedMap] = useState({});
 
   const navigate = useNavigate();
-
-  const filteredTasks = tasks.filter(
-    (task) => task.status === statuses[currentTab]
-  );
 
   const fetchTasks = useCallback(() => {
     fetch(`http://localhost:8000/tasks/`)
       .then((response) => response.json())
       .then((data) => {
-        setTasks(data);
-        setStatus(data.length > 0 ? "ok" : "No tasks yet...");
+        setTasksMap({
+          0: data.filter(task => !task.is_completed && !task.is_deleted),
+          1: data.filter(task => task.is_completed && !task.is_deleted),
+          2: data.filter(task => task.is_deleted),
+        });
 
-        console.log(data);
+        setStatus(data.length > 0 ? "ok" : "No tasks yet...");
       })
       .catch((error) => console.error("Error fetching tasks: ", error))
   }, []);
+
+  const changeCurrentTab = (e, newCurrentTab) => {
+    setCurrentTab(newCurrentTab);
+  };
 
   const toggleExpand = (id) => {
     setIsExpandedMap((prevState) => ({
       ...prevState,
       [id]: !prevState[id],
     }));
-  };
-
-  const changeCurrentTab = (e, newCurrentTab) => {
-    setCurrentTab(newCurrentTab);
   };
 
   useEffect(() => {
@@ -128,7 +125,7 @@ export default function ShowTasks() {
               </IconButton>
             </Box>
             <List>
-              {filteredTasks.map((task, index) => (
+              {tasksMap[currentTab].map((task, index) => (
                 <React.Fragment key={task.id}>
                   <ListItem disablePadding>
                     <ListItemButton disableRipple
@@ -141,7 +138,8 @@ export default function ShowTasks() {
                         '&:hover': { backgroundColor: "rgba(69, 183, 139, 0.5)" },
                       }}
                     >
-                      <IconButton disableRipple
+                      <IconButton disableRipple 
+                        disabled={task.is_completed || task.is_deleted}
                         onClick={(e) => {
                           e.stopPropagation();
 
@@ -153,7 +151,7 @@ export default function ShowTasks() {
                         }}
                       >
                         {
-                          task.status === "TODO" 
+                          !task.is_completed 
                           ? <RadioButtonUncheckedIcon /> 
                           : <RadioButtonCheckedIcon />
                         }
@@ -170,8 +168,6 @@ export default function ShowTasks() {
                       <IconButton disableRipple
                         onClick={(e) => {
                           e.stopPropagation();
-
-
                         }}
                         sx={{
                           color: "#092E20",
@@ -203,7 +199,7 @@ export default function ShowTasks() {
                       />
                     </ListItem>
                   </Collapse>
-                  {index < tasks.length - 1 && <Divider />}
+                  {index < tasksMap[currentTab].length - 1 && <Divider />}
                 </React.Fragment>
               ))}
             </List>
