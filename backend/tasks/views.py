@@ -34,7 +34,6 @@ def edit_task(request, task_id):
     else:
         return Response(status=404)
     
-    
 @api_view(["DELETE"])
 def delete_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)

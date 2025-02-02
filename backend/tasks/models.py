@@ -8,4 +8,4 @@ class Task(models.Model):
     is_deleted = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ["title"]
+        ordering = ["is_deleted", "is_completed", "title"]
