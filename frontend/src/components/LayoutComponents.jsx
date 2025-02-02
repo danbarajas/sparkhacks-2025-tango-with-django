@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import { Box } from "@mui/material";
-import Grid from '@mui/material/Grid2';
+import Grid from "@mui/material/Grid2";
 
 export function Column({width = undefined, gap = 0, children = null}) {
   return (

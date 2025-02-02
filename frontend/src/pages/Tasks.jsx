@@ -1,19 +1,11 @@
-import { Container, Typography } from "@mui/material";
-import { Column, DemoAppBar } from "@components";
+import { Outlet } from "react-router-dom";
+import { DemoAppBar } from "@components";
 
-import "@styles/index.css";
-
-export default function Tasks() {
+export default function Dashboard() {
   return (
     <>
       <DemoAppBar/>
-      <Container sx={{ padding: 4 }}>
-        <Column gap={3}>
-          <Typography variant="h2">
-            Tasks
-          </Typography>
-        </Column>
-      </Container>
+      <Outlet />
     </>
   );
 }
