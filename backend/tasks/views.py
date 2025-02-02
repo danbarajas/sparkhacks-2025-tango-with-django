@@ -10,6 +10,12 @@ def get_tasks(request):
     serializer = TaskSerializer(tasks, many=True)
     return Response(serializer.data)
 
+@api_view(["GET"])
+def get_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    serializer = TaskSerializer(task)
+    return Response(serializer.data)
+
 @api_view(["POST"])
 def create_task(request):
     new_task = Task(title=request.data["title"], notes=request.data["notes"])

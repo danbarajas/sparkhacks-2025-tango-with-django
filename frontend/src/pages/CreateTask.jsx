@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Container, IconButton, ListItemButton, ListItemText, Snackbar, SnackbarContent, TextField, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Column, Row } from "@components";
@@ -141,6 +141,7 @@ export function CreateTaskForm() {
 }
 
 export default function CreateTask() {
+  const location = useLocation();
   const navigate = useNavigate();
 
   return (
@@ -149,7 +150,12 @@ export default function CreateTask() {
         <Column gap={2}>
           <Row gap={2}>
             <IconButton
-              onClick={() => { navigate("/tasks"); }}
+              onClick={() => {
+                navigate(
+                  "/tasks", 
+                  location.state?.from ? {state: {from: location.state?.from}} : null
+                );
+              }}
               size="large"
               sx={{
                 color: "#0C3C26",

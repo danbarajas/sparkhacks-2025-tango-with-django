@@ -16,7 +16,7 @@ function TechLogo({ logo, link, hint }) {
         popper: {
             modifiers: [{
                 name: "offset",
-                options: { offset: [0, -9] }
+                options: { offset: [0, -12] }
             }]
         }
     }}>
@@ -38,13 +38,16 @@ export default function Home() {
     <>
       <DemoAppBar/>
       <Container sx={{ padding: 4 }}>
-        <Column gap={4}>
+        <Column gap={3}>
           <Typography variant="h2">
             Tango with Django Demo Project
           </Typography>
 
           <Typography variant="body1">
             Just a small demo project made by Kaito Sekiya for SparkHacks 2025 Tango with Django workshop.
+          </Typography>
+          <Typography variant="body1">
+            The goal of this workshop is to integrate Django as the backend for a React-based TODO application. This will enable creating, editing, and deleting tasks with a persistent database, so changes remain even if the page is refreshed. Participants will learn how to set up models, views, and REST APIs, and how to connect it to a React frontend, and implement CRUD functionalaty with it. By the end of the session, attendees will hopefully have a fully functional TODO app.
           </Typography>
 
           <Typography variant="h4">Frontend</Typography>
@@ -67,7 +70,7 @@ export default function Home() {
             <TechLogo logo={DjangoLogo} link="https://www.djangoproject.com" hint="Django" />
           </ResponsiveContainer>
           <Typography variant="body1" sx={{textAlign: "center"}}>
-            For backend, this demo project uses Django, a Python framework to build web applications. 
+            For backend, this demo project uses Django, a Python framework to build web applications.
           </Typography>
         </Column>
       </Container>

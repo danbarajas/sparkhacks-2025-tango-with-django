@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Box, Collapse, Container, Divider, IconButton, List, ListItem, ListItemButton, ListItemText, Tab, Typography } from "@mui/material";
 import { TabContext, TabList } from "@mui/lab";
 import AddTaskIcon from '@mui/icons-material/AddTask';
@@ -7,21 +7,24 @@ import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Column, ScreenMessage } from "@components";
 
 import "@styles/index.css";
 
 export default function ShowTasks() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [tasks, setTasks] = useState([]);
   const [tasksMap, setTasksMap] = useState({});
   
   const [status, setStatus] = useState("Server is dead...");
 
-  const [currentTab, setCurrentTab] = useState(0);
+  const initialTab = location.state?.from ? location.state?.from : 0;
+  const [currentTab, setCurrentTab] = useState(initialTab);
   const [isExpandedMap, setIsExpandedMap] = useState({});
-
-  const navigate = useNavigate();
 
   const updateTaskMap = (new_tasks) => {
     setTasks(new_tasks);
@@ -33,7 +36,7 @@ export default function ShowTasks() {
   }
 
   const fetchTasks = useCallback(() => {
-    fetch(`http://localhost:8000/tasks/`)
+    fetch("http://localhost:8000/tasks/")
       .then((response) => {
         setStatus(response.ok ? "ok" : "No tasks yet...");
         return response.json();
@@ -148,7 +151,7 @@ export default function ShowTasks() {
                 Tasks
               </Typography>
               <IconButton disableRipple
-                onClick={() => navigate("/tasks/create")}
+                onClick={() => navigate("/tasks/create", {state: {from: currentTab}})}
                 sx={{
                   display: "flex", 
                   justifyContent: "center", 
@@ -212,6 +215,18 @@ export default function ShowTasks() {
                         <IconButton disableRipple sx={{color: "#092E20"}}
                         >
                           {isExpandedMap[task.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                        </IconButton>
+                        <IconButton disableRipple
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/tasks/edit/${task.id}`, {state: {from: currentTab}})
+                          }}
+                          sx={{
+                            color: "#092E20",
+                            '&:hover': { color: "#F1FFF8" }
+                          }}
+                        >
+                          <EditIcon />
                         </IconButton>
                         <IconButton disableRipple
                           onClick={(e) => {
