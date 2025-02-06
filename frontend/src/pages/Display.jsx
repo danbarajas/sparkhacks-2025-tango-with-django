@@ -13,7 +13,7 @@ import { Column, ScreenMessage } from "@components";
 
 import "@styles/index.css";
 
-export default function ShowTasks() {
+export default function Display() {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -52,13 +52,13 @@ export default function ShowTasks() {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({"is_completed": true}),
     })
-    .then((response) => {
-      if (response.ok) {
-        updateTaskMap(tasks.map((task) =>
-          task.id === taskId ? { ...task, is_completed: true } : task
-        ));
-      }
-    })
+      .then((response) => {
+        if (response.ok) {
+          updateTaskMap(tasks.map((task) =>
+            task.id === taskId ? { ...task, is_completed: true } : task
+          ));
+        }
+      })
   }
 
   const deleteTask = (taskId) => {

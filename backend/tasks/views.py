@@ -11,8 +11,8 @@ def get_tasks(request):
     return Response(serializer.data)
 
 @api_view(["GET"])
-def get_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
+def get_task(request, id):
+    task = get_object_or_404(Task, id=id)
     serializer = TaskSerializer(task)
     return Response(serializer.data)
 
@@ -24,8 +24,8 @@ def create_task(request):
     return Response({"message": "Task created successfully."}, status=200)
 
 @api_view(["PUT"])
-def edit_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
+def edit_task(request, id):
+    task = get_object_or_404(Task, id=id)
     serializer = TaskSerializer(task, data=request.data, partial=True)
     
     if serializer.is_valid():
@@ -35,8 +35,8 @@ def edit_task(request, task_id):
         return Response(status=404)
     
 @api_view(["DELETE"])
-def delete_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
+def delete_task(request, id):
+    task = get_object_or_404(Task, id=id)
 
     if not task.is_deleted:
         task.is_deleted = True

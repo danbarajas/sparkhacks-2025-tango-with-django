@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useCallback, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Container, IconButton, ListItemButton, ListItemText, Snackbar, SnackbarContent, TextField, Typography } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Column, Row } from "@components";
@@ -17,9 +17,7 @@ const textFieldStyleProps = {
   "& .MuiInputBase-root.MuiFilledInput-root:after": {borderBottomColor: "#092E20"}
 };
 
-export function EditTaskForm() {
-  const { id: taskId } = useParams();
-
+export function CreateForm() {
   const [task, setTask] = useState({
     title: "",
     titleError: false,
@@ -37,6 +35,10 @@ export function EditTaskForm() {
   }, []);
 
   const isValidTask = useCallback(() => {
+    updateTask({
+      titleError: false, titleErrorMessage: " ",
+    });
+
     if (task.title.length === 0) {
       updateTask({ 
         titleError: true,
@@ -44,22 +46,18 @@ export function EditTaskForm() {
       });
 
       return false;
-    } else {
-      updateTask({
-        titleError: false, titleErrorMessage: " ",
-      });
     }
 
     return true;
   }, [task, updateTask]);
 
-  const editTask = useCallback(() => {
+  const createTask = useCallback(() => {
     if (!isValidTask()) {
       return;
     }
 
-    fetch(`http://localhost:8000/tasks/edit/${taskId}/`, {
-      method: "PUT",
+    fetch("http://localhost:8000/tasks/create/", {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         "title": task.title,
@@ -70,7 +68,14 @@ export function EditTaskForm() {
         let snackbarMessage = "Something is wrong with the server"; 
         
         if (response.ok) {
-          snackbarMessage = "Task is successfully updated!";
+          snackbarMessage = "Task is successfully created!";
+
+          updateTask({
+            title: "",
+            titleError: false,
+            titleErrorMessage: " ",
+            notes: ""
+          });
         } 
 
         setSnackbar({
@@ -78,15 +83,7 @@ export function EditTaskForm() {
           message: snackbarMessage
         });
       });
-  }, [isValidTask, taskId, task, setSnackbar]);
-
-  useEffect(() => {
-    fetch(`http://localhost:8000/tasks/${taskId}/`)
-      .then((response) => response.json())
-      .then((data) => {
-        updateTask(data);
-      });
-  }, [taskId, updateTask]);
+  }, [isValidTask, task, updateTask, setSnackbar]);
 
   return (
     <Column width="375px" gap={2}>
@@ -110,7 +107,7 @@ export function EditTaskForm() {
         sx={textFieldStyleProps}
       />
       <ListItemButton disableRipple
-        onClick={editTask}
+        onClick={createTask}
         sx={{
           backgroundColor: "#45B78B",
           borderRadius: 0,
@@ -119,7 +116,7 @@ export function EditTaskForm() {
       >
         <ListItemText primary={
           <Typography variant="body1" sx={{textAlign: "center", textTransform: "uppercase"}}>
-            Save task
+            Create new task
           </Typography>
         } />
       </ListItemButton>
@@ -143,7 +140,7 @@ export function EditTaskForm() {
   );
 }
 
-export default function EditTask() {
+export default function Create() {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -153,10 +150,10 @@ export default function EditTask() {
         <Column gap={2}>
           <Row gap={2}>
             <IconButton
-              onClick={() => { 
+              onClick={() => {
                 navigate(
                   "/tasks", 
-                  location.state?.from ? {state: {from: location.state?.from}} : null
+                  location.state ? {state: {from: location.state?.from}} : null
                 );
               }}
               size="large"
@@ -166,7 +163,7 @@ export default function EditTask() {
             >
               <ArrowBackIcon />
             </IconButton>
-            <Typography variant="h3">Edit Task</Typography>
+            <Typography variant="h3">New Task</Typography>
             <IconButton
               size="large"
               sx={{
@@ -177,7 +174,7 @@ export default function EditTask() {
               <ArrowBackIcon />
             </IconButton>
           </Row>
-          <EditTaskForm />
+          <CreateForm />
         </Column>
       </Container>
     </>
