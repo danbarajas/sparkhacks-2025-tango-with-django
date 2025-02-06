@@ -25,14 +25,7 @@ def create_task(request):
 
 @api_view(["PUT"])
 def edit_task(request, id):
-    task = get_object_or_404(Task, id=id)
-    serializer = TaskSerializer(task, data=request.data, partial=True)
-    
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"message": "Task edited successfully."}, status=200)
-    else:
-        return Response(status=404)
+    return Response({"message": "Not implemented."}, status=500)
     
 @api_view(["DELETE"])
 def delete_task(request, id):
