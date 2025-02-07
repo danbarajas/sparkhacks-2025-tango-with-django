@@ -168,7 +168,7 @@ export default function Display() {
                 <AddTaskIcon/>
               </IconButton>
             </Box>
-            {tasksMap[currentTab].length === 0 ? (
+            {tasksMap[currentTab]?.length === 0 ? (
               <ScreenMessage message={currentTab === 0 
                 ? "Yay, no tasks to do!" 
                 : currentTab === 1 
@@ -177,7 +177,7 @@ export default function Display() {
               }/>
             ) : (
               <List>
-                {tasksMap[currentTab].map((task, index) => (
+                {tasksMap[currentTab]?.map((task, index) => (
                   <React.Fragment key={task.id}>
                     <ListItem disablePadding>
                       <ListItemButton disableRipple
